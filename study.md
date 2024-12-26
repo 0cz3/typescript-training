@@ -7,7 +7,6 @@
 - [サバイバルTypeScript](https://typescriptbook.jp/)
 - [TypeScript Deep Dive](https://typescript-jp.gitbook.io/deep-dive)
 
-
 ## 型推論
 
 型注釈がついていない変数でもコンテキストに基づいて自動的に型を推測する
@@ -67,6 +66,14 @@ noImplicitAnyをtrueにすると暗黙のanyに警告を出すことができる
 ### unknown
 
 何でも代入できる型。その値に対する操作は制限され、型の安全性が保たれる。「型安全なany型」
+any型の値をより安全にする、型アサーションの制約を回避する際に利用される
+
+型アサーションの制約を回避する際に利用
+
+```ts
+const str = "a";
+const num = str as unknown as number;
+```
 
 具体的な型へは代入できない
 
@@ -136,8 +143,6 @@ animal is Duckの部分は型述語。関数isDuck()がtrueを返す時のifの�
 
 void
 値が存在しないことを示す。関数が何も返さない場合に使用
-
-
 
 ## 高度な型表現
 
