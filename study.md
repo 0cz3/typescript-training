@@ -642,3 +642,62 @@ type FailGrade = Extract<Grade, "D" | "E">;
 // → type FailGrade = "D" | "E"
 ```
 
+## NonNullable<T>
+
+Tからnullとundefinedを取り除いたユニオン型を返す
+
+## ReturnType<T>
+
+関数型Tの戻り値を取得する
+typeofと併用して実際の関数の戻り値を取得できる
+
+```ts
+const isEven = (num: number) => {
+  return num / 2 === 0;
+};
+type isEvenRetType = ReturnType<typeof isEven>;
+//type isEvenRetType = boolean
+```
+
+## Awaited<T>
+
+Promiseが何重にネストしていても、最終的な解決値の型を取得できる
+
+## Mapped Types
+
+既存の型から新しい型を生成
+
+```ts
+type Person = {
+  name: string;
+  age: number;
+};
+type ReadOnlyPerson = { readonly [K in keyof Person]: Person[K] };
+/* type ReadOnlyPerson = {
+    readonly name: string;
+    readonly age: number;
+} */
+```
+
+## インデックスアクセス型 (indexed access types)
+
+プロパティ名に対応する型を取得。key ofを使用すると前プロパティの方が得られる
+
+```ts
+type Foo = { a: number; b: string; c: boolean };
+type T = Foo[keyof Foo];
+// type T = string | number | boolean
+```
+
+[number]を使用して配列型にも使用可能
+
+```ts
+type MixedArray = (string | undefined)[];
+type T = MixedArray[number];
+// type T = string | undefined
+
+const array = [null, "a", "b"];
+type T = (typeof array)[number];
+// type T = string | null  typeof型演算子と組み合わせて、配列の値から要素の型を導く
+```
+
