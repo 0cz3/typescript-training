@@ -9,11 +9,13 @@
 
 ## 型推論
 
-型注釈がついていない変数でもコンテキストに基づいて自動的に型を推測する
+型注釈がついていない変数でもコンテキストに基づいて自動的に型を推測する。
+型推論できるものについては基本型注釈を記述しないで良い。
 
 ## 型注釈(type annotation)
 
 コンパイラに与えるヒント。書き加えると、コンパイラはより細かいチェックをしてくれる
+変数や定数、関数のパラメータ、関数の戻り値などのデータを定義する際に書く`データ: 型`
 
 ```ts
 function increment(num: number) {
@@ -23,12 +25,33 @@ function increment(num: number) {
 console.log(increment("999"));
 ```
 
+memo
 上記だと型強制が行われずエラーとなる
-
 型強制 (type coercion)
 型が異なる2つの値を処理するとき、暗黙的に別の型へ変換されること
 `999 + 1 = 1000`
 `"999" + 1 = 9991 //型強制`
+
+### オブジェクトの型注釈
+
+プロパティに対して型をつける。キーと値の型のペアを書く。ネストしてもかける
+
+```ts
+let box: { width: number; height: number };
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^型注釈
+box = { width: 1080, height: 720 };
+```
+
+### 配列の型注釈
+
+```ts
+//Type[]
+let array: number[];
+array = [1, 2, 3];
+//Array<T>
+let array: Array<number>;
+array = [1, 2, 3];
+```
 
 ## コンパイル
 
@@ -45,6 +68,13 @@ let value: StringOrNumber;
 value = "hello"; // string型が代入可能
 value = 123; // number型も代入可能
 ```
+
+## 基本的な型
+
+JSと同じ型.number,string,boolean...
+memo
+numberは浮動小数点。少数やマイナス可
+
 
 ## 特殊な型
 
@@ -116,6 +146,7 @@ obj.name;
 
 型の絞り込み
 unknownを使うためには、typeofやinstanceofなど型ガードを行って型を絞り込む必要がある。型ガード以降はガードした型として扱う
+
 typeofで型ガード
 
 ```ts
@@ -161,10 +192,12 @@ animal is Duckの部分は型述語。関数isDuck()がtrueを返す時のifの�
 
 決して何も返さないことを示す。エラーを投げる関数や無限ループの関数の戻り値として使用する。
 
+
 ```ts
 function throwError(): never {
   throw new Error();
 }
+// 関数宣言の場合の型推論はvoidになる。関数宣言やアロー関数ではneverの推論になる
 ```
 
 memo
@@ -212,7 +245,6 @@ function printLang(ext: Extension): void {
 }
 ```
 
-
 ## 高度な型表現
 
 ユニオン型
@@ -257,7 +289,6 @@ class Shape {
     return 0;
   }
 }
- 
 class Circle {
   radius: number;
   constructor(radius: number) {
@@ -279,7 +310,6 @@ TypeScriptにおいてextendsは部分型の判定ではなく、親クラスの
 class Animal {
   walk() {}
 }
- 
 class Dog extends Animal {
   walk(speed: number) {} // コンパイルエラーになる
 }
@@ -367,13 +397,6 @@ chooseRandomly<number>(1, 2);
 chooseRandomly<URL>(urlA, urlB);
 ```
 
-## 配列の型注釈
-
-```ts
-let numbers: number[];
-let strings: Array<string>;
-```
-
 ## 読み取り専用配列
 
 値の変更をさせない
@@ -383,15 +406,39 @@ const numbers: readonly number[] = [1, 2, 3];
 const strings: ReadonlyArray<string> = ["hello", "world"];
 ```
 
+## 列挙型 (Enum)
+
+定数のセットを作って使い回す。型を作ると同時にオブジェクトも作られる
+
+```ts
+// パスカルケース
+enum Position {
+  Top,
+  Right,
+  Bottom,
+  Left,
+}
+
+//同義
+enum Position {
+  Top = "Top",
+  Right = "Right",
+  Bottom = "Bottom,
+  Left = "Left",
+}
+```
+
+
+
 ## タプル型
 
-配列の要素数と要素の型を固定。
+配列の要素数と要素の型を固定。[型, 型, 型]で表す
 
 ```ts
 let tuple: [string, number];
 tuple = ["hello", 10]; // 代入できる
 tuple = [10, "hello"]; // 順序が正しくないため、代入できない
-tuple = ["hello", 10, "world"]; // 要素が多すぎるため代入できない
+tuple = ["hello", 10, "world"]; // 要素が多すぎるため代入できない (pushはできる、その場合参照時にエラーが出る)
 ```
 
 ## readonlyプロパティ
@@ -473,20 +520,58 @@ const p: ThreeDimensionalPoint = {
 };
 ```
 
+## リテラル型 (literal type)
+
+プリミティブ型の特定の値だけを代入可能にする。マジックナンバーやステートの表現に用いる
+
+```ts
+const isTrue: true = true;
+const num: 123 = 123;
+const str: "foo" = "foo"; //fooしか入らない
+
+const num: 1 | 2 | 3 = 1; // 1, 2, 3しか受け入れない
+```
+
 ## 関数への型づけ
+
+パラメータと戻り値につける。パラメータはanyになるため必ず型をつける。戻り値は型推論してくれることが多い
 
 ```ts
 //アロー関数
 const greet = (name: string): string => {
   return `Hello ${name}`;
 };
+const greet: (name: string) => string = name => {
+  return `Hello ${name}`;
+};
+
 //関数宣言
 function greet(name: string): string {
   return `Hello ${name}`;
 }
+
 //呼び出し
 console.log(greet("John"));
 'Hello John'
+
+//callback (arg: [引数の型]) => [戻り値の型]
+function greetNewUser(func: (name: string) => string) {
+  console.log(func("ご新規"));
+}
+function hello(name: string) {
+  return `こんにちは！${name}さん！！`;
+}
+function goodMorning(name: string) {
+  return `おはようございます！${name}さん！！`;
+}
+/* funcの型をvoidにするとhelloやgoodMorningではエラーは起きないが、
+greetNewUserの処理で使われているfuncでエラーが起きる */
+
+//呼び出し
+// こんにちは！ご新規さん!!
+greetNewUser(hello);
+// おはようございます！ご新規さん!!
+greetNewUser(goodMorning);
 ```
 
 ## クラスへの型づけ
@@ -505,6 +590,35 @@ class Person {
     console.log(`My name is ${this.name} and I am ${this.age} years old.`);
   }
 }
+```
+
+## this引数 (this parameter)
+
+使用するコンテキストによってthisの意味するところが変わってしまうため、これらがどのコンテキストで使用されるべきなのかをTypeScriptに伝える
+thisは呼び出す側は意識する必要はなく、第2引数以降を指定する
+アロー関数の場合は考慮不要
+
+```ts
+class Male {
+  private name: string;
+  public constructor(name: string) {
+    this.name = name;
+  }
+  public toString(): string {
+    return `Monsieur ${this.name}`;
+  }
+}
+
+class Female {
+  private name: string;
+  public constructor(name: string) {
+    this.name = name;
+  }
+  public toString(this: Female): string {
+    return `Madame ${this.name}`;
+  }
+}
+// Femaleを呼び出す際のthisは必ずFemale型であると伝える
 ```
 
 ## type importとtype export
@@ -701,3 +815,40 @@ type T = (typeof array)[number];
 // type T = string | null  typeof型演算子と組み合わせて、配列の値から要素の型を導く
 ```
 
+## satisfies演算子「satisfies operator」
+
+satisfies T(Tは型)で、その値が型Tを満たすことを検証。データの型を判定したいだけの時に使用
+
+```ts
+const pikachu: Pokemon = {
+  name: "pikachu",
+  no: 25,
+  genre: "mouse pokémon",
+  height: "0.4m",
+  weight: "6.0kg",
+};
+const raichu = {
+  name: "raichu",
+  no: 26,
+  genre: "mouse pokémon",
+  height: "0.8m",
+  weight: "30.0kg",
+} satisfies Pokemon;
+```
+
+## インターフェースと型エイリアスの違い
+
+ |   |   |   |
+|---|---|---|
+|内容|インターフェース|型エイリアス|
+|継承|可能|不可。ただし交差型で表現は可能|
+|継承による上書き|上書きまたはエラー|フィールド毎に交差型が計算される|
+|同名のものを宣言|定義がマージされる|エラー|
+|Mapped Types|使用不可|使用可能|
+
+インターフェースと型エイリアスの使い分けについて明確な違いはないが、
+Googleが公開しているTypeScriptのスタイルガイドの型エイリアスvsインターフェースの項目では、プリミティブな値やユニオン型やタプルの型定義をする場合は型エイリアスを利用し、オブジェクトの型を定義する場合はインターフェースを使うことを推奨している。
+
+## Promise
+romiseの型を指定する場合はジェネリクスを伴いPromise<T>と記述。
+TにはPromiseが履行された(fulfilled)ときに返す値の型を指定
